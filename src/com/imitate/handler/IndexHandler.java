@@ -7,15 +7,15 @@ import java.lang.reflect.Method;
 
 public class IndexHandler implements InvocationHandler {
 
-    private Object obj;
+    private IndexDao indexDao;
 
-    public IndexHandler(Object source){
-        this.obj = source;
+    public IndexHandler(IndexDao indexDao){
+        this.indexDao = indexDao;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         System.out.println("记录时间");
-        return  method.invoke(obj,args);
+        return  method.invoke(indexDao,args);
     }
 }

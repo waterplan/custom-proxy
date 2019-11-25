@@ -5,7 +5,6 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -18,16 +17,16 @@ import java.nio.charset.Charset;
  */
 public class ProxyUtil {
 
-    public static Object newProxyInstance(Object source,Class<?>[] interfaces, InvocationHandler h){
+    public static Object newProxyInstance(Class<?> sourceClass,Class<?>[] interfaces, InvocationHandler h){
         String proxyPackageName = "package com.waterplan.proxy;";
 
         String proxyImportStr ="import java.lang.reflect.Method; \nimport java.lang.reflect.InvocationHandler;" ;
-
+        
         proxyPackageName+= "\n"+proxyImportStr;
         String proxyClassName = "public class Proxy$0  implements ";
-        String proxyFiledStr = "private  InvocationHandler h;\n private Object source;";
+        String proxyFiledStr = "private  InvocationHandler h;\n private Class<?> source;";
         //构造方法
-        String proxyConstructorStr = "public Proxy$0(InvocationHandler h, Object source) {"+"\n"+"    this.h = h; this.source = source; }";
+        String proxyConstructorStr = "public Proxy$0(InvocationHandler h, Class<?> source) {"+"\n"+"    this.h = h; this.source = source; }";
         proxyConstructorStr+="\n"+proxyFiledStr;
         String methodContexts = "";
 
@@ -56,8 +55,7 @@ public class ProxyUtil {
                     methodStr+=") {\n";
                     argStr= argStr.substring(0,argStr.length()-1);
                     methodStr +=" try {";
-                    methodStr += " Method method = source.getClass().getMethod(\""+method.getName()+"\","+paramtTypeClassStr+");\n";
-                    methodStr += "      method.setAccessible(true);\n";
+                    methodStr += " Method method = source.getMethod(\""+method.getName()+"\","+paramtTypeClassStr+");\n";
                     String returnStr = "";
                     if(!returnTypeStr.equals("void")){
                         returnStr+= "return null;";
@@ -80,18 +78,18 @@ public class ProxyUtil {
         proxyClassName+="\n"+proxyConstructorStr;
         proxyClassName+="\n"+methodContexts;
         proxyPackageName +="\n"+proxyClassName+"}";
-        System.out.println(proxyPackageName);
 
         String tmpFolder=System.getProperty("java.io.tmpdir");
-        tmpFolder+="com\\waterplan\\proxy\\Proxy$0.java";
+        tmpFolder+="com\\waterplan\\proxy";
         File file = new File(tmpFolder);
+        
+        File classFile = new File(tmpFolder+"\\Proxy$0.java");
         FileWriter writer = null;
         try {
             if (!file.exists()) {
-//                file.mkdirs();
-                file.createNewFile();
+                file.mkdirs();
             }
-             writer = new FileWriter(file);
+             writer = new FileWriter(classFile);
             writer.write(proxyPackageName);
             writer.flush();
         } catch (IOException e) {
@@ -107,7 +105,7 @@ public class ProxyUtil {
         try {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, Charset.defaultCharset());
-            Iterable<? extends JavaFileObject> it = standardFileManager.getJavaFileObjects(file);
+            Iterable<? extends JavaFileObject> it = standardFileManager.getJavaFileObjects(classFile);
             JavaCompiler.CompilationTask task = compiler.getTask(null, standardFileManager, null, null, null, it);
             task.call();
             standardFileManager.close();
@@ -116,9 +114,9 @@ public class ProxyUtil {
             try {
                 Class<?> targetClass = urlClassLoader.loadClass("com.waterplan.proxy.Proxy$0");
                 Class targetClss = h.getClass().getInterfaces()[0];
-                Constructor<?> constructor = targetClass.getConstructor(targetClss,source.getClass().getSuperclass());
+                Constructor<?> constructor = targetClass.getConstructor(targetClss,Class.class);
                 try {
-                    Object proxy = constructor.newInstance(h, source);
+                    Object proxy = constructor.newInstance(h, sourceClass);
                     return proxy;
                 } catch (InstantiationException e) {
                     e.printStackTrace();
