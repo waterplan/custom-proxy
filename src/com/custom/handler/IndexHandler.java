@@ -1,6 +1,6 @@
-package com.imitate.handler;
+package com.custom.handler;
 
-import com.imitate.test.IndexDao;
+import com.custom.test.IndexDao;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

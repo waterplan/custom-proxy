@@ -1,4 +1,4 @@
-package com.imitate.test;
+package com.custom.test;
 
 public class IndexDaoImpl  implements IndexDao{
     @Override

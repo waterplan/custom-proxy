@@ -1,4 +1,4 @@
-package com.imitate.proxy;
+package com.custom.proxy;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -17,19 +17,20 @@ import java.nio.charset.Charset;
  */
 public class ProxyUtil {
 
-    public static Object newProxyInstance(Class<?> sourceClass,Class<?>[] interfaces, InvocationHandler h){
+    public static Object newProxyInstance(Class<?>[] interfaces, InvocationHandler h){
         String proxyPackageName = "package com.waterplan.proxy;";
 
         String proxyImportStr ="import java.lang.reflect.Method; \nimport java.lang.reflect.InvocationHandler;" ;
         
         proxyPackageName+= "\n"+proxyImportStr;
         String proxyClassName = "public class Proxy$0  implements ";
-        String proxyFiledStr = "private  InvocationHandler h;\n private Class<?> source;";
+        String proxyFiledStr = "private  InvocationHandler h;\n private Class[] source;";
         //构造方法
-        String proxyConstructorStr = "public Proxy$0(InvocationHandler h, Class<?> source) {"+"\n"+"    this.h = h; this.source = source; }";
+        String proxyConstructorStr = "public Proxy$0(InvocationHandler h, Class[] source) {"+"\n"+"    this.h = h; this.source = source; }";
         proxyConstructorStr+="\n"+proxyFiledStr;
         String methodContexts = "";
 
+        int  count = 0;
         //获取接口中需要实现的方法
         for (Class<?> proxyInterface : interfaces) {
             proxyClassName += " "+proxyInterface.getName()+",";
@@ -55,7 +56,7 @@ public class ProxyUtil {
                     methodStr+=") {\n";
                     argStr= argStr.substring(0,argStr.length()-1);
                     methodStr +=" try {";
-                    methodStr += " Method method = source.getMethod(\""+method.getName()+"\","+paramtTypeClassStr+");\n";
+                    methodStr += " Method method = source["+count+"].getMethod(\""+method.getName()+"\","+paramtTypeClassStr+");\n";
                     String returnStr = "";
                     if(!returnTypeStr.equals("void")){
                         returnStr+= "return null;";
@@ -71,6 +72,7 @@ public class ProxyUtil {
 
                 }
             }
+            count++;
         }
         proxyClassName = proxyClassName.substring(0,proxyClassName.length()-1);
 
@@ -114,9 +116,9 @@ public class ProxyUtil {
             try {
                 Class<?> targetClass = urlClassLoader.loadClass("com.waterplan.proxy.Proxy$0");
                 Class targetClss = h.getClass().getInterfaces()[0];
-                Constructor<?> constructor = targetClass.getConstructor(targetClss,Class.class);
+                Constructor<?> constructor = targetClass.getConstructor(targetClss,interfaces.getClass());
                 try {
-                    Object proxy = constructor.newInstance(h, sourceClass);
+                    Object proxy = constructor.newInstance(h, interfaces);
                     return proxy;
                 } catch (InstantiationException e) {
                     e.printStackTrace();

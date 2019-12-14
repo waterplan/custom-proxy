@@ -1,4 +1,4 @@
-package com.imitate.test;
+package com.custom.test;
 
 public interface UserDao {
 	
