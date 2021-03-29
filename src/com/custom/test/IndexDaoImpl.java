@@ -1,6 +1,6 @@
 package com.custom.test;
 
-public class IndexDaoImpl  implements IndexDao{
+public class IndexDaoImpl  implements IndexDao,UserDao{
     @Override
     public Object query(String name) {
         System.out.println(" 查询数据库");
@@ -17,4 +17,10 @@ public class IndexDaoImpl  implements IndexDao{
         System.out.println("查询所有");
         return null;
     }
+
+	@Override
+	public Object queryForName(String name) {
+        System.out.println("查到时间 :"+name);
+		return  name;
+	}
 }

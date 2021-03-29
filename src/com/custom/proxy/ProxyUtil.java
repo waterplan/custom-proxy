@@ -114,7 +114,7 @@ public class ProxyUtil {
             String urlStr = "file:"+System.getProperty("java.io.tmpdir");
             URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL(urlStr)});
             try {
-                Class<?> targetClass = urlClassLoader.loadClass("com.waterplan.proxy.Proxy$0");
+                Class targetClass = urlClassLoader.loadClass("com.waterplan.proxy.Proxy$0");
                 Class targetClss = h.getClass().getInterfaces()[0];
                 Constructor<?> constructor = targetClass.getConstructor(targetClss,interfaces.getClass());
                 try {
